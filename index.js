@@ -1,366 +1,86 @@
-const { Client, LocalAuth, MessageMedia } = require('whatsapp-web.js');
-const axios = require('axios');
+// index.js - Main Bot File
+const { default: makeWASocket, useMultiFileAuthState, DisconnectReason, fetchLatestBaileysVersion, makeCacheableSignalKeyStore } = require('@whiskeysockets/baileys');
+const pino = require('pino');
 const fs = require('fs');
+const path = require('path');
+const readline = require('readline');
 
-const client = new Client({
-    authStrategy: new LocalAuth(),
-    puppeteer: {
-        headless: true,
-        args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage']
-    }
-});
+// Import handlers
+const messageHandler = require('./handlers/messageHandler');
+const { loadData, saveData } = require('./utils/database');
 
-const PREFIX = '.';
-const BOT_NAME = 'Ayanokoji';
-const CREATOR = 'Kynx';
-const CREATOR_NUMBER = '2349049460676@c.us';
+const CREATOR = '2349049460676@s.whatsapp.net';
+let prefix = '.';
 
-// Data storage
-const userData = new Map();
-const groupData = new Map();
+async function connectToWhatsApp() {
+    const { state, saveCreds } = await useMultiFileAuthState('auth_info');
+    const { version } = await fetchLatestBaileysVersion();
 
-// Load/Save data
-function loadData() {
-    try {
-        if (fs.existsSync('userdata.json')) {
-            const data = JSON.parse(fs.readFileSync('userdata.json'));
-            Object.entries(data).forEach(([k, v]) => userData.set(k, v));
-        }
-        if (fs.existsSync('groupdata.json')) {
-            const data = JSON.parse(fs.readFileSync('groupdata.json'));
-            Object.entries(data).forEach(([k, v]) => groupData.set(k, v));
-        }
-    } catch (e) { console.log('No previous data'); }
-}
+    const sock = makeWASocket({
+        version,
+        logger: pino({ level: 'silent' }),
+        printQRInTerminal: false,
+        auth: {
+            creds: state.creds,
+            keys: makeCacheableSignalKeyStore(state.keys, pino({ level: 'silent' }))
+        },
+        browser: ['Nexora Bot', 'Chrome', '1.0.0'],
+        markOnlineOnConnect: true,
+    });
 
-function saveData() {
-    fs.writeFileSync('userdata.json', JSON.stringify(Object.fromEntries(userData)));
-    fs.writeFileSync('groupdata.json', JSON.stringify(Object.fromEntries(groupData)));
-}
+    // Request pairing code
+    if (!sock.authState.creds.registered) {
+        const rl = readline.createInterface({
+            input: process.stdin,
+            output: process.stdout
+        });
 
-function getUser(userId) {
-    if (!userData.has(userId)) {
-        userData.set(userId, {
-            name: 'Anonymous',
-            balance: 1000,
-            bank: 0,
-            level: 1,
-            xp: 0,
-            lastDaily: 0,
-            lastWeekly: 0,
-            lastWork: 0,
-            inventory: {},
-            warnings: 0
+        rl.question('Enter your WhatsApp phone number (with country code, no +): ', async (number) => {
+            number = number.replace(/[^0-9]/g, '');
+            const code = await sock.requestPairingCode(number);
+            console.log(`\n🔐 Your Pairing Code: ${code}\n`);
+            rl.close();
         });
     }
-    return userData.get(userId);
-}
 
-function getGroup(groupId) {
-    if (!groupData.has(groupId)) {
-        groupData.set(groupId, {
-            antilink: false,
-            antispam: false,
-            antiflood: false,
-            antibot: false,
-            raidmode: false,
-            smartreply: false,
-            mods: [],
-            guardians: [],
-            owner: null,
-            rules: 'No rules set yet.',
-            welcomeMsg: 'Welcome @user!',
-            muted: [],
-            banned: [],
-            warnings: {},
-            slowmode: 0,
-            disabledCommands: [],
-            modLogs: [],
-            mode: 'public'
-        });
-    }
-    return groupData.get(groupId);
-}
+    sock.ev.on('creds.update', saveCreds);
 
-// Permission system
-function isCreator(userId) {
-    return userId === CREATOR_NUMBER;
-}
-
-function isOwner(groupId, userId) {
-    const group = getGroup(groupId);
-    return group.owner === userId || isCreator(userId);
-}
-
-function isGuardian(groupId, userId) {
-    const group = getGroup(groupId);
-    return group.guardians.includes(userId) || isOwner(groupId, userId);
-}
-
-function isMod(groupId, userId) {
-    const group = getGroup(groupId);
-    return group.mods.includes(userId) || isGuardian(groupId, userId);
-}
-
-function hasPermission(groupId, userId, level) {
-    if (level === 'creator') return isCreator(userId);
-    if (level === 'owner') return isOwner(groupId, userId);
-    if (level === 'guardian') return isGuardian(groupId, userId);
-    if (level === 'mod') return isMod(groupId, userId);
-    return false;
-}
-
-// Menu
-function getMenu() {
-    return `╭━━ ✦彡  𝚴𝚵𝚾𝚯𝚪𝚫  彡✦ ━━╮     
-║  ✧ Name: ${BOT_NAME}
-║  ✧ Prefix  : ${PREFIX}   
-║  ✧ Creator : ${CREATOR}
-╰━━━━━━━━━━━━━━━━━━╯
- ❖ *.support* official group
-
-╭━━ 🧠 AI & SMART TOOLS
-┃ ✦ .ai [query]
-┃ ✦ .chat [message]
-┃ ✦ .smartreply on/off
-┃ ✦ .aisummary
-┃ ✦ .sentiment [text]
-┃ ✦ .mood
-╰━━━━━━━━━━━━━━━━━━━━━━
-
-╭━━ ⚔️ GROUP CONTROL
-┃ ✦ .add [number]
-┃ ✦ .kick @user
-┃ ✦ .lock / .unlock
-┃ ✦ .tagall / .hidetag
-┃ ✦ .setrules [text]
-┃ ✦ .rules
-┃ ✦ .clear [number]
-╰━━━━━━━━━━━━━━━━━━━━━━
-
-╭━━ 👑 CREATOR AUTHORITY
-┃ ✦ .promote @user
-┃ ✦ .demote @user
-┃ ✦ .tempadmin @user [time]
-┃ ✦ .ban / .tempban @user
-┃ ✦ .unban @user
-┃ ✦ .panic
-┃ ✦ .disable [command]
-┃ ✦ .enable [command]
-┃ ✦ .restart
-┃ ✦ .setprefix [prefix]
-┃ ✦ .mode public/private
-╰━━━━━━━━━━━━━━━━━━━━━━
-
-╭━━ ⚙️ CORE COMMANDS
-┃ ✦ .mods
-┃ ✦ .adminlist
-┃ ✦ .adminrank
-┃ ✦ .banlist
-┃ ✦ .forceleave
-┃ ✦ .audittrail
-┃ ✦ .modlog
-╰━━━━━━━━━━━━━━━━━━━━━━
-
-╭━━ 🛡️ MODERATION
-┃ ✦ .mute / .unmute @user
-┃ ✦ .warn @user [reason]
-┃ ✦ .warnings @user
-┃ ✦ .resetwarn @user
-┃ ✦ .slowmode [seconds]
-┃ ✦ .note [text]
-┃ ✦ .report @user [reason]
-╰━━━━━━━━━━━━━━━━━━━━━━
-
-╭━━ 🛡️ SECURITY & ANTIRAID
-┃ ✦ .antilink on/off
-┃ ✦ .antispam on/off
-┃ ✦ .antiflood on/off
-┃ ✦ .antibot on/off
-┃ ✦ .verify
-┃ ✦ .shadowmute @user
-┃ ✦ .raidmode on/off
-╰━━━━━━━━━━━━━━━━━━━━━━
-
-╭━━ 💰 ECONOMY & LEVELS
-┃ ✦ .balance / .bank
-┃ ✦ .daily / .weekly
-┃ ✦ .work / .crime
-┃ ✦ .pay @user [amount]
-┃ ✦ .steal @user
-┃ ✦ .level / .rank
-┃ ✦ .leaderboard
-┃ ✦ .shop
-┃ ✦ .inventory
-╰━━━━━━━━━━━━━━━━━━━━━━
-
-╭━━ 🎮 FUN & SOCIAL
-┃ ✦ .joke
-┃ ✦ .quote
-┃ ✦ .truth / .dare
-┃ ✦ .ship @user1 @user2
-┃ ✦ .rizz
-┃ ✦ .poll [question|opt1|opt2]
-╰━━━━━━━━━━━━━━━━━━━━━━
-
-╭━━ 🎴 CARDS SYSTEM
-┃ 🚧 This section is still under development
-╰━━━━━━━━━━━━━━━━━━━━━━
-
-╭━━ 📊 STATS & INFO
-┃ ✦ .ping
-┃ ✦ .stats
-┃ ✦ .activity
-┃ ✦ .permissions
-┃ ✦ .creator
-╰━━━━━━━━━━━━━━━━━━━━━━`;
-}
-
-// COMMANDS
-const commands = {
-    menu: async (msg) => {
-        await msg.reply(getMenu());
-    },
-
-    // MOD SYSTEM
-    mods: async (msg) => {
-        const chat = await msg.getChat();
-        if (!chat.isGroup) return msg.reply('❌ Groups only!');
+    sock.ev.on('connection.update', (update) => {
+        const { connection, lastDisconnect } = update;
         
-        const group = getGroup(chat.id._serialized);
-        
-        let modList = `╭━━━━━━ ◈ MOD TEAM ◈ ━━━━━━╮
-║
-║  LEADERSHIP\n`;
-        
-        // Owner
-        if (group.owner) {
-            try {
-                const contact = await client.getContactById(group.owner);
-                const name = contact.pushname || contact.number;
-                modList += `║  👑 Owner: ${name}\n`;
-            } catch {
-                modList += `║  👑 Owner: Set\n`;
+        if (connection === 'close') {
+            const shouldReconnect = lastDisconnect?.error?.output?.statusCode !== DisconnectReason.loggedOut;
+            console.log('Connection closed. Reconnecting:', shouldReconnect);
+            
+            if (shouldReconnect) {
+                connectToWhatsApp();
             }
-        } else {
-            modList += `║  👑 Owner: Not set\n`;
+        } else if (connection === 'open') {
+            console.log('✅ Nexora Bot Connected Successfully!');
+            console.log('👑 Created by Kynx');
         }
-        
-        modList += `║\n║  SENIOR STAFF\n`;
-        
-        // Guardians
-        if (group.guardians && group.guardians.length > 0) {
-            modList += `║  🛡️ Guardians: ${group.guardians.length}\n`;
-            for (let i = 0; i < group.guardians.length; i++) {
-                try {
-                    const contact = await client.getContactById(group.guardians[i]);
-                    const name = contact.pushname || contact.number;
-                    const prefix = i === group.guardians.length - 1 ? '└─' : '├─';
-                    modList += `║     ${prefix} ${name}\n`;
-                } catch {}
-            }
-        } else {
-            modList += `║  🛡️ Guardians: 0\n`;
-        }
-        
-        modList += `║\n║  MODERATORS\n`;
-        
-        // Mods
-        if (group.mods && group.mods.length > 0) {
-            modList += `║  ⚔️ Mods: ${group.mods.length}\n`;
-            for (let i = 0; i < group.mods.length; i++) {
-                try {
-                    const contact = await client.getContactById(group.mods[i]);
-                    const name = contact.pushname || contact.number;
-                    const prefix = i === group.mods.length - 1 ? '└─' : '├─';
-                    modList += `║     ${prefix} ${name}\n`;
-                } catch {}
-            }
-        } else {
-            modList += `║  ⚔️ Mods: 0\n`;
-        }
-        
-        const totalStaff = (group.owner ? 1 : 0) + 
-                          (group.guardians?.length || 0) + 
-                          (group.mods?.length || 0);
-        
-        modList += `║
-║  📊 Total Staff: ${totalStaff}
-║
-╰━━━━━━━━━━━━━━━━━━━━━━━━╯
+    });
 
-Use .addmod @user to add moderators
-Use .addguardian @user to add guardians`;
+    sock.ev.on('messages.upsert', async ({ messages, type }) => {
+        if (type !== 'notify') return;
         
-        await msg.reply(modList);
-    },
+        const m = messages[0];
+        if (!m.message) return;
+        
+        await messageHandler(sock, m, prefix, CREATOR);
+    });
 
-    addmod: async (msg) => {
-        const chat = await msg.getChat();
-        if (!chat.isGroup) return msg.reply('❌ Groups only!');
-        if (!hasPermission(chat.id._serialized, msg.from, 'guardian')) {
-            return msg.reply('❌ Guardians+ only!');
-        }
-        
-        const mentions = await msg.getMentions();
-        if (!mentions[0]) return msg.reply('❌ Tag someone!');
-        
-        const group = getGroup(chat.id._serialized);
-        const userId = mentions[0].id._serialized;
-        
-        if (group.mods.includes(userId)) {
-            return msg.reply('❌ Already a moderator!');
-        }
-        
-        group.mods.push(userId);
-        saveData();
-        await msg.reply(`✅ @${mentions[0].number} is now a Moderator! ⚔️`);
-    },
+    return sock;
+}
 
-    removemod: async (msg) => {
-        const chat = await msg.getChat();
-        if (!chat.isGroup) return msg.reply('❌ Groups only!');
-        if (!hasPermission(chat.id._serialized, msg.from, 'guardian')) {
-            return msg.reply('❌ Guardians+ only!');
-        }
-        
-        const mentions = await msg.getMentions();
-        if (!mentions[0]) return msg.reply('❌ Tag someone!');
-        
-        const group = getGroup(chat.id._serialized);
-        const userId = mentions[0].id._serialized;
-        
-        group.mods = group.mods.filter(id => id !== userId);
-        saveData();
-        await msg.reply(`✅ @${mentions[0].number} removed from Moderators!`);
-    },
+// Start bot
+connectToWhatsApp().catch(err => console.error('Error starting bot:', err));
 
-    addguardian: async (msg) => {
-        const chat = await msg.getChat();
-        if (!chat.isGroup) return msg.reply('❌ Groups only!');
-        if (!hasPermission(chat.id._serialized, msg.from, 'owner')) {
-            return msg.reply('❌ Owner only!');
-        }
-        
-        const mentions = await msg.getMentions();
-        if (!mentions[0]) return msg.reply('❌ Tag someone!');
-        
-        const group = getGroup(chat.id._serialized);
-        const userId = mentions[0].id._serialized;
-        
-        if (group.guardians.includes(userId)) {
-            return msg.reply('❌ Already a guardian!');
-        }
-        
-        group.mods = group.mods.filter(id => id !== userId);
-        group.guardians.push(userId);
-        saveData();
-        await msg.reply(`✅ @${mentions[0].number} is now a Guardian! 🛡️`);
-    },
-
-    removeguardian: async (msg) => {
-        const chat = await msg.getChat();
-        if (!chat.isGroup) return msg.reply('❌ Groups only!');
+// Handle process termination
+process.on('SIGINT', () => {
+    console.log('\n👋 Bot shutting down...');
+    process.exit(0);
+}); if (!chat.isGroup) return msg.reply('❌ Groups only!');
         if (!hasPermission(chat.id._serialized, msg.from, 'owner')) {
             return msg.reply('❌ Owner only!');
         }
