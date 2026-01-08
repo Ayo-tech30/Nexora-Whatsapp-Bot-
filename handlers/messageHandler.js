@@ -8,6 +8,8 @@ const securityCommands = require('../commands/security');
 const economyCommands = require('../commands/economy');
 const funCommands = require('../commands/fun');
 const statsCommands = require('../commands/stats');
+const hierarchyCommands = require('../commands/hierarchy');
+const { getUserPermission, PERMISSIONS } = require('../utils/hierarchy');
 
 const SUPPORT_LINK = 'https://chat.whatsapp.com/C58szhJGQ3EKlvFt1Hp57n';
 
@@ -17,6 +19,17 @@ const MENU = `╭━━ ✦彡 𝚴𝚵𝚾𝚯𝚪𝚫 彡✦ ━━╮
 ║  ✧ Creator : Kynx
 ╰━━━━━━━━━━━━━━━━━━╯
  ❖ *.support* official group
+ ❖ *.mods* view staff hierarchy
+
+╭━━ 👑 HIERARCHY & STAFF
+┃ ✦ .mods / .staff
+┃ ✦ .addmod @user
+┃ ✦ .addguardian @user
+┃ ✦ .removestaff @user
+┃ ✦ .promoteguardian @user
+┃ ✦ .demotemod @user
+┃ ✦ .myrank
+╰━━━━━━━━━━━━━━━━━━━━━━
 
 ╭━━ 🧠 AI & SMART TOOLS
 ┃ ✦ .ai
@@ -27,7 +40,7 @@ const MENU = `╭━━ ✦彡 𝚴𝚵𝚾𝚯𝚪𝚫 彡✦ ━━╮
 ┃ ✦ .mood
 ╰━━━━━━━━━━━━━━━━━━━━━━
 
-╭━━ ⚔️ ADMIN CONTROL
+╭━━ ⚔️ ADMIN CONTROL (Guardians+)
 ┃ ✦ .add
 ┃ ✦ .kick
 ┃ ✦ .lock / .unlock
@@ -51,7 +64,7 @@ const MENU = `╭━━ ✦彡 𝚴𝚵𝚾𝚯𝚪𝚫 彡✦ ━━╮
 ┃ ✦ .mode public/private
 ╰━━━━━━━━━━━━━━━━━━━━━━
 
-╭━━ ⚙️ CORE COMMANDS
+╭━━ ⚙️ CORE COMMANDS (Guardians+)
 ┃ ✦ .adminlist
 ┃ ✦ .adminrank
 ┃ ✦ .banlist
@@ -60,7 +73,7 @@ const MENU = `╭━━ ✦彡 𝚴𝚵𝚾𝚯𝚪𝚫 彡✦ ━━╮
 ┃ ✦ .modlog
 ╰━━━━━━━━━━━━━━━━━━━━━━
 
-╭━━ 🛡️ MODERATION
+╭━━ 🛡️ MODERATION (Guardians+)
 ┃ ✦ .mute / .unmute
 ┃ ✦ .warn
 ┃ ✦ .warnings
@@ -70,7 +83,7 @@ const MENU = `╭━━ ✦彡 𝚴𝚵𝚾𝚯𝚪𝚫 彡✦ ━━╮
 ┃ ✦ .report
 ╰━━━━━━━━━━━━━━━━━━━━━━
 
-╭━━ 🛡️ SECURITY & ANTIRAID
+╭━━ 🛡️ SECURITY (Moderators+)
 ┃ ✦ .antilink on/off
 ┃ ✦ .antispam on/off
 ┃ ✦ .antiflood
@@ -113,7 +126,12 @@ const MENU = `╭━━ ✦彡 𝚴𝚵𝚾𝚯𝚪𝚫 彡✦ ━━╮
 ╰━━━━━━━━━━━━━━━━━━━━━━
 
 ✨ NEXORA - CREATED BY KYNX 👑 ✨ 
-Type \`.help <section>\` to expand`;
+Type \`.help <section>\` to expand
+
+🔰 STAFF ROLES:
+👑 Owner - Full Control
+⚔️ Moderators - Advanced Permissions
+🛡️ Guardians - Basic Moderation`;
 
 async function messageHandler(sock, m, prefix, CREATOR) {
     try {
@@ -132,6 +150,11 @@ async function messageHandler(sock, m, prefix, CREATOR) {
         const isGroup = sender.endsWith('@g.us');
         const senderNumber = m.key.participant || m.key.remoteJid;
         const isCreator = senderNumber === CREATOR;
+        
+        // Get user permission level
+        const userPermission = getUserPermission(senderNumber, CREATOR);
+        const isModerator = userPermission >= PERMISSIONS.MODERATOR;
+        const isGuardian = userPermission >= PERMISSIONS.GUARDIAN;
 
         // Get group metadata if in group
         let groupMetadata, isAdmin = false, isBotAdmin = false;
@@ -154,9 +177,113 @@ async function messageHandler(sock, m, prefix, CREATOR) {
             return reply(MENU);
         }
 
+        // Mods command - Shows all modules
+        if (command === 'mods' || command === 'modules') {
+            const modsMenu = `╭━━━━━━━━━━━━━━━━━━╮
+║  🤖 NEXORA MODULES  ║
+╰━━━━━━━━━━━━━━━━━━╯
+
+┏━━━ 📦 INSTALLED MODULES ━━━┓
+
+┃ 1️⃣ 🧠 AI Module
+┃    Status: ✅ Active
+┃    Commands: 6
+┃    • .ai, .chat, .smartreply
+┃    • .aisummary, .sentiment, .mood
+┃
+┃ 2️⃣ ⚔️ Admin Module
+┃    Status: ✅ Active
+┃    Commands: 13
+┃    • .add, .kick, .lock, .unlock
+┃    • .tagall, .hidetag, .rules
+┃    • .adminlist, .banlist, .modlog
+┃
+┃ 3️⃣ 👑 Creator Module
+┃    Status: 🔒 Restricted
+┃    Commands: 11
+┃    • .promote, .demote, .ban
+┃    • .panic, .restart, .mode
+┃    • Only accessible by Kynx
+┃
+┃ 4️⃣ 🛡️ Moderation Module
+┃    Status: ✅ Active
+┃    Commands: 7
+┃    • .mute, .warn, .slowmode
+┃    • .report, .resetwarn
+┃
+┃ 5️⃣ 🔒 Security Module
+┃    Status: ✅ Active
+┃    Commands: 7
+┃    • .antilink, .antispam
+┃    • .antiflood, .raidmode
+┃    • .antibot, .verify
+┃
+┃ 6️⃣ 💰 Economy Module
+┃    Status: ✅ Active
+┃    Commands: 11
+┃    • .balance, .daily, .work
+┃    • .shop, .leaderboard, .pay
+┃
+┃ 7️⃣ 🎮 Fun Module
+┃    Status: ✅ Active
+┃    Commands: 6
+┃    • .joke, .quote, .ship
+┃    • .truth, .dare, .rizz
+┃
+┃ 8️⃣ 📊 Stats Module
+┃    Status: ✅ Active
+┃    Commands: 5
+┃    • .ping, .stats, .activity
+┃    • .permissions, .creator
+┃
+┗━━━━━━━━━━━━━━━━━━━━━━━━━┛
+
+📊 Total Modules: 8
+✅ Active: 8
+🔒 Restricted: 1 (Creator)
+💻 Total Commands: 66+
+
+Type .help <module> for details
+Example: .help economy
+
+✨ NEXORA v1.0 - Modular Bot System
+👑 Created by Kynx`;
+            
+            return reply(modsMenu);
+        }
+
         // Support command
         if (command === 'support') {
             return reply(`Join our official support group:\n${SUPPORT_LINK}`);
+        }
+
+        // Hierarchy Commands
+        if (['mods', 'staff', 'hierarchy'].includes(command)) {
+            return hierarchyCommands.mods(sock, m, args, reply, CREATOR);
+        }
+
+        if (command === 'addmod') {
+            return hierarchyCommands.addmod(sock, m, args, reply, senderNumber, CREATOR);
+        }
+
+        if (command === 'addguardian') {
+            return hierarchyCommands.addguardian(sock, m, args, reply, senderNumber, CREATOR);
+        }
+
+        if (command === 'removestaff') {
+            return hierarchyCommands.removestaff(sock, m, args, reply, senderNumber, CREATOR);
+        }
+
+        if (command === 'demotemod') {
+            return hierarchyCommands.demotemod(sock, m, args, reply, senderNumber, CREATOR);
+        }
+
+        if (command === 'promoteguardian') {
+            return hierarchyCommands.promoteguardian(sock, m, args, reply, senderNumber, CREATOR);
+        }
+
+        if (command === 'myrank') {
+            return hierarchyCommands.myrank(sock, m, args, reply, senderNumber, CREATOR);
         }
 
         // AI Commands
@@ -164,10 +291,10 @@ async function messageHandler(sock, m, prefix, CREATOR) {
             return aiCommands[command](sock, m, args, reply);
         }
 
-        // Admin Commands
+        // Admin Commands - Now accessible by Guardians and above
         if (['add', 'kick', 'lock', 'unlock', 'tagall', 'hidetag', 'setrules', 'rules', 'clear'].includes(command)) {
             if (!isGroup) return reply('❌ This command can only be used in groups!');
-            if (!isAdmin) return reply('❌ Only admins can use this command!');
+            if (!isGuardian && !isAdmin) return reply('❌ Only guardians and above can use this command!');
             if (['add', 'kick', 'lock', 'unlock'].includes(command) && !isBotAdmin) {
                 return reply('❌ I need to be an admin to execute this command!');
             }
@@ -187,17 +314,17 @@ async function messageHandler(sock, m, prefix, CREATOR) {
             return adminCommands[command](sock, m, args, reply, groupMetadata, sender);
         }
 
-        // Moderation Commands
+        // Moderation Commands - Guardians and above
         if (['mute', 'unmute', 'warn', 'warnings', 'resetwarn', 'slowmode', 'note', 'report'].includes(command)) {
             if (!isGroup) return reply('❌ This command can only be used in groups!');
-            if (!isAdmin && command !== 'report') return reply('❌ Only admins can use this command!');
+            if (!isGuardian && !isAdmin && command !== 'report') return reply('❌ Only guardians and above can use this command!');
             return moderationCommands[command](sock, m, args, reply, sender, senderNumber);
         }
 
-        // Security Commands
+        // Security Commands - Moderators and above
         if (['antilink', 'antispam', 'antiflood', 'antibot', 'verify', 'shadowmute', 'raidmode'].includes(command)) {
             if (!isGroup) return reply('❌ This command can only be used in groups!');
-            if (!isAdmin) return reply('❌ Only admins can use this command!');
+            if (!isModerator && !isAdmin) return reply('❌ Only moderators and above can use this command!');
             return securityCommands[command](sock, m, args, reply, sender);
         }
 
