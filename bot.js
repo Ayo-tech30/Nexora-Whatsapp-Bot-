@@ -12,7 +12,7 @@ const client = new Client({
 
 const PREFIX = '.';
 const BOT_NAME = 'Ayanokoji';
-const CREATOR = '𝑰𝒔𝒂𝒈𝒊 𝒀𝒐𝒊𝒄𝒉𝒊';
+const CREATOR = 'Kynx';
 const CREATOR_NUMBER = '2349049460676@c.us';
 
 // Data storage
