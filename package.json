@@ -1,0 +1,21 @@
+{
+  "name": "nexora-bot",
+  "version": "1.0.0",
+  "description": "Lightweight WhatsApp Bot by Kynx",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js"
+  },
+  "keywords": ["whatsapp", "bot", "baileys", "nexora"],
+  "author": "Kynx",
+  "license": "MIT",
+  "dependencies": {
+    "@whiskeysockets/baileys": "^6.7.9",
+    "pino": "^8.16.2",
+    "qrcode-terminal": "^0.12.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2"
+  }
+}
