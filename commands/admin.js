@@ -45,7 +45,7 @@ module.exports = {
     unlock: async (sock, m, args, reply, groupMetadata, sender) => {
         try {
             await sock.groupSettingUpdate(sender, 'not_announcement');
-            updateGroupData(sender, { locked: false });
+            updateGroupData(sender, { locked: false, panicmode: false });
             addLog('unlock', { groupId: sender, by: m.key.participant });
             reply('🔓 *Group Unlocked!*\n\nEveryone can send messages now.');
         } catch (error) {
@@ -94,7 +94,7 @@ module.exports = {
         
         if (count > 100) return reply('❌ Cannot clear more than 100 messages at once!');
         
-        reply(`🗑️ Clearing last ${count} messages... (Note: This is a simulation as WhatsApp doesn't allow bots to delete messages)`);
+        reply(`🗑️ Message clear command received for ${count} messages.\n\n⚠️ Note: WhatsApp bots cannot delete messages sent by others. Only group admins can manually delete messages.`);
         addLog('clear', { groupId: sender, count, by: m.key.participant });
     },
 
@@ -111,7 +111,7 @@ module.exports = {
         }).join('\n');
         
         await sock.sendMessage(sender, {
-            text: `⚔️ *Group Admins*\n\n${adminList}`,
+            text: `⚔️ *Group Admins*\n\n${adminList}\n\n📊 Total: ${admins.length}`,
             mentions: admins.map(a => a.id)
         });
     },
@@ -149,10 +149,10 @@ module.exports = {
         const list = bannedUsers.map((id, i) => {
             const ban = bans[id];
             const type = ban.tempban ? '⏰ Temp' : '🔒 Permanent';
-            return `${i + 1}. ${type} @${id.split('@')[0]} - ${ban.reason}`;
-        }).join('\n');
+            return `${i + 1}. ${type} @${id.split('@')[0]}\n   Reason: ${ban.reason}`;
+        }).join('\n\n');
         
-        reply(`🚫 *Banned Users*\n\n${list}`);
+        reply(`🚫 *Banned Users*\n\n${list}\n\n📊 Total: ${bannedUsers.length}`);
     },
 
     forceleave: async (sock, m, args, reply, groupMetadata, sender) => {
@@ -171,7 +171,7 @@ module.exports = {
         const groupLogs = Object.values(logs)
             .filter(log => log.groupId === sender)
             .sort((a, b) => b.timestamp - a.timestamp)
-            .slice(0, 10);
+            .slice(0, 15);
         
         if (groupLogs.length === 0) {
             return reply('❌ No audit logs found for this group!');
@@ -182,7 +182,7 @@ module.exports = {
             return `${i + 1}. [${log.type.toUpperCase()}] ${date}`;
         }).join('\n');
         
-        reply(`📋 *Audit Trail (Last 10)*\n\n${logList}`);
+        reply(`📋 *Audit Trail (Last 15)*\n\n${logList}`);
     },
 
     modlog: async (sock, m, args, reply, groupMetadata, sender) => {
@@ -190,9 +190,9 @@ module.exports = {
         const logs = loadData('logs');
         
         const modLogs = Object.values(logs)
-            .filter(log => log.groupId === sender && ['kick', 'ban', 'mute', 'warn'].includes(log.type))
+            .filter(log => log.groupId === sender && ['kick', 'ban', 'mute', 'warn', 'quarantine', 'paniclock'].includes(log.type))
             .sort((a, b) => b.timestamp - a.timestamp)
-            .slice(0, 10);
+            .slice(0, 15);
         
         if (modLogs.length === 0) {
             return reply('❌ No moderation logs found!');
@@ -203,6 +203,6 @@ module.exports = {
             return `${i + 1}. [${log.type.toUpperCase()}] ${date}`;
         }).join('\n');
         
-        reply(`🛡️ *Moderation Logs*\n\n${logList}`);
+        reply(`🛡️ *Moderation Logs (Last 15)*\n\n${logList}`);
     }
 };
