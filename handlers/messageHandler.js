@@ -21,77 +21,48 @@ const MENU = `╭━━ ✦彡 𝚴𝚵𝚾𝚯𝚪𝚫 彡✦ ━━╮
  ❖ *.support* official group
  ❖ *.mods* view staff hierarchy
 
-╭━━ 👑 HIERARCHY & STAFF
-┃ ✦ .mods / .staff
-┃ ✦ .addmod @user
-┃ ✦ .addguardian @user
-┃ ✦ .removestaff @user
-┃ ✦ .promoteguardian @user
-┃ ✦ .demotemod @user
-┃ ✦ .myrank
-╰━━━━━━━━━━━━━━━━━━━━━━
+╭━━ 👑 CREATOR OVERRIDE
+┃ ✦ Full command access
+┃ ✦ Role & permission override
+┃ ✦ Immune to bans, mutes & limits
+┃ ✦ Emergency system control
+╰━━━━━━━━━━━━━━━━━━━━━
 
-╭━━ 🧠 AI & SMART TOOLS
-┃ ✦ .ai
-┃ ✦ .chat
-┃ ✦ .smartreply on/off
-┃ ✦ .aisummary
-┃ ✦ .sentiment
-┃ ✦ .mood
-╰━━━━━━━━━━━━━━━━━━━━━━
-
-╭━━ ⚔️ ADMIN CONTROL (Guardians+)
-┃ ✦ .add
-┃ ✦ .kick
-┃ ✦ .lock / .unlock
-┃ ✦ .tagall / .hidetag
-┃ ✦ .setrules
-┃ ✦ .rules
-┃ ✦ .clear <number>
-╰━━━━━━━━━━━━━━━━━━━━━━
-
-╭━━ 👑 CREATOR AUTHORITY (KYNX)
-┃ ✦ .promote
-┃ ✦ .demote
-┃ ✦ .tempadmin <time>
-┃ ✦ .ban / .tempban
-┃ ✦ .unban
-┃ ✦ .panic
-┃ ✦ .disable <command>
-┃ ✦ .enable <command>
-┃ ✦ .restart
-┃ ✦ .setprefix
-┃ ✦ .mode public/private
-╰━━━━━━━━━━━━━━━━━━━━━━
-
-╭━━ ⚙️ CORE COMMANDS (Guardians+)
-┃ ✦ .adminlist
-┃ ✦ .adminrank
-┃ ✦ .banlist
-┃ ✦ .forceleave
-┃ ✦ .audittrail
-┃ ✦ .modlog
-╰━━━━━━━━━━━━━━━━━━━━━━
-
-╭━━ 🛡️ MODERATION (Guardians+)
+╭━━ 👑 ADMIN CONTROL
+┃ ✦ .kick @user
+┃ ✦ .warn @user
+┃ ✦ .warnings @user
 ┃ ✦ .mute / .unmute
-┃ ✦ .warn
-┃ ✦ .warnings
-┃ ✦ .resetwarn
-┃ ✦ .slowmode
-┃ ✦ .note
-┃ ✦ .report
-╰━━━━━━━━━━━━━━━━━━━━━━
-
-╭━━ 🛡️ SECURITY (Moderators+)
+┃ ✦ .slowmode <time>
+┃ ✦ .lock / .unlock
+┃ ✦ .clear <amount>
+┃ ✦ .tagall / .hidetag
+┃ ✦ .raidmode on/off
 ┃ ✦ .antilink on/off
 ┃ ✦ .antispam on/off
-┃ ✦ .antiflood
-┃ ✦ .antibot
-┃ ✦ .verify
-┃ ✦ .shadowmute
-┃ ✦ .raidmode
-╰━━━━━━━━━━━━━━━━━━━━━━
+┃ ✦ .antiflood on/off
+╰━━━━━━━━━━━━━━━━━━━━━
+
+╭━━ 🛡️ MODS & GUARDIANS
+┃ ✦ .ban @user
+┃ ✦ .tempban @user <time>
+┃ ✦ .unban @user
+┃ ✦ .shadowmute @user
+┃ ✦ .quarantine @user
+┃ ✦ .verify on/off
+┃ ✦ .antibot on/off
+┃ ✦ .paniclock
+┃ ✦ .selfpromote
+┃ ✦ .selfdemote
+╰━━━━━━━━━━━━━━━━━━━━━
+
+╭━━ 🧰 COMMAND MANAGEMENT
+┃ ✦ .disable <command>
+┃ ✦ .enable <command>
+┃ ✦ .disabledlist
+┃ ✦ .cooldown <command> <time>
+┃ ✦ .ratelimit <command>
+╰━━━━━━━━━━━━━━━━━━━━━
 
 ╭━━ 💰 ECONOMY & LEVELS
 ┃ ✦ .balance / .bank
@@ -102,36 +73,22 @@ const MENU = `╭━━ ✦彡 𝚴𝚵𝚾𝚯𝚪𝚫 彡✦ ━━╮
 ┃ ✦ .leaderboard
 ┃ ✦ .shop
 ┃ ✦ .inventory
-╰━━━━━━━━━━━━━━━━━━━━━━
-
-╭━━ 🎮 FUN & SOCIAL
-┃ ✦ .joke
-┃ ✦ .quote
-┃ ✦ .truth / .dare
-┃ ✦ .ship
-┃ ✦ .rizz
-┃ ✦ .poll
-╰━━━━━━━━━━━━━━━━━━━━━━
+╰━━━━━━━━━━━━━━━━━━━━━
 
 ╭━━ 🎴 CARDS SYSTEM
 ┃ 🚧 This section is still under development
-╰━━━━━━━━━━━━━━━━━━━━━━
+┃ Planned: T1–T5 • Rarity • Trading
+╰━━━━━━━━━━━━━━━━━━━━━
 
-╭━━ 📊 STATS & INFO
+╭━━ 📊 INFO & SYSTEM
 ┃ ✦ .ping
 ┃ ✦ .stats
-┃ ✦ .activity
 ┃ ✦ .permissions
 ┃ ✦ .creator
-╰━━━━━━━━━━━━━━━━━━━━━━
+┃ ✦ .help
+╰━━━━━━━━━━━━━━━━━━━━━
 
-✨ NEXORA - CREATED BY KYNX 👑 ✨ 
-Type \`.help <section>\` to expand
-
-🔰 STAFF ROLES:
-👑 Owner - Full Control
-⚔️ Moderators - Advanced Permissions
-🛡️ Guardians - Basic Moderation`;
+✨ NEXORA - CREATED BY KYNX 👑 ✨`;
 
 async function messageHandler(sock, m, prefix, CREATOR) {
     try {
@@ -174,7 +131,17 @@ async function messageHandler(sock, m, prefix, CREATOR) {
 
         // Menu command
         if (command === 'menu' || command === 'help') {
-            return reply(MENU);
+            // Send image with menu
+            try {
+                await sock.sendMessage(sender, {
+                    image: { url: 'https://i.pinimg.com/736x/fa/32/d7/fa32d7c8e3e84c93ec6e4b4dc8b90c87.jpg' },
+                    caption: MENU
+                }, { quoted: m });
+            } catch (error) {
+                // If image fails, send text only
+                return reply(MENU);
+            }
+            return;
         }
 
         // Mods command - Shows all modules
@@ -301,30 +268,43 @@ Example: .help economy
             return adminCommands[command](sock, m, args, reply, groupMetadata, sender);
         }
 
-        // Creator Commands
-        if (['promote', 'demote', 'tempadmin', 'ban', 'tempban', 'unban', 'panic', 'disable', 'enable', 'restart', 'setprefix', 'mode'].includes(command)) {
+        // Creator Commands - Ban system
+        if (['ban', 'tempban', 'unban'].includes(command)) {
+            if (!isModerator && !isCreator) return reply('⚔️ Only moderators and above can use this command!');
+            return creatorCommands[command](sock, m, args, reply, sender);
+        }
+
+        // Other Creator Commands
+        if (['promote', 'demote', 'tempadmin', 'panic', 'disable', 'enable', 'restart', 'setprefix', 'mode'].includes(command)) {
             if (!isCreator) return reply('👑 This command is restricted to the bot creator (Kynx) only!');
             return creatorCommands[command](sock, m, args, reply, sender, isGroup, groupMetadata);
         }
 
-        // Core Commands
+        // Core Commands - Available to guardians and above
         if (['adminlist', 'adminrank', 'banlist', 'forceleave', 'audittrail', 'modlog'].includes(command)) {
             if (!isGroup) return reply('❌ This command can only be used in groups!');
-            if (!isAdmin) return reply('❌ Only admins can use this command!');
+            if (!isGuardian && !isAdmin) return reply('❌ Only guardians and above can use this command!');
             return adminCommands[command](sock, m, args, reply, groupMetadata, sender);
         }
 
-        // Moderation Commands - Guardians and above
+        // Moderation Commands - Guardians and above (except quarantine and paniclock)
         if (['mute', 'unmute', 'warn', 'warnings', 'resetwarn', 'slowmode', 'note', 'report'].includes(command)) {
             if (!isGroup) return reply('❌ This command can only be used in groups!');
             if (!isGuardian && !isAdmin && command !== 'report') return reply('❌ Only guardians and above can use this command!');
             return moderationCommands[command](sock, m, args, reply, sender, senderNumber);
         }
 
-        // Security Commands - Moderators and above
+        // Advanced Moderation - Moderators and above
+        if (['quarantine', 'paniclock'].includes(command)) {
+            if (!isGroup) return reply('❌ This command can only be used in groups!');
+            if (!isModerator && !isAdmin) return reply('⚔️ Only moderators and above can use this command!');
+            return moderationCommands[command](sock, m, args, reply, sender, senderNumber);
+        }
+
+        // Security Commands - Guardians and above
         if (['antilink', 'antispam', 'antiflood', 'antibot', 'verify', 'shadowmute', 'raidmode'].includes(command)) {
             if (!isGroup) return reply('❌ This command can only be used in groups!');
-            if (!isModerator && !isAdmin) return reply('❌ Only moderators and above can use this command!');
+            if (!isGuardian && !isAdmin) return reply('❌ Only guardians and above can use this command!');
             return securityCommands[command](sock, m, args, reply, sender);
         }
 
