@@ -144,6 +144,48 @@ module.exports = {
         const adminMsg = `🚨 *New Report*\n\nReporter: @${senderNumber.split('@')[0]}\nReported: @${mentioned.split('@')[0]}\nReason: ${reason}`;
         
         await sock.sendMessage(sender, { text: adminMsg, mentions: [senderNumber, mentioned, ...admins] });
+    },
+
+    quarantine: async (sock, m, args, reply, sender, senderNumber) => {
+        const mentioned = m.message.extendedTextMessage?.contextInfo?.mentionedJid?.[0];
+        
+        if (!mentioned) {
+            return reply('❌ Usage: .quarantine @user\n\nQuarantines user (mute + shadowmute + tag removal)');
+        }
+        
+        // Mute the user
+        updateUserData(mentioned, { 
+            muted: true, 
+            quarantined: true,
+            quarantineUntil: Date.now() + 86400000 // 24 hours
+        });
+        
+        addLog('quarantine', { groupId: sender, user: mentioned, by: senderNumber });
+        
+        reply(`🔒 *User Quarantined!*\n\n@${mentioned.split('@')[0]}\n\n⚠️ Quarantine Effects:\n• Muted for 24h\n• Cannot be tagged\n• Messages hidden from bot\n• Under review`);
+    },
+
+    paniclock: async (sock, m, args, reply, sender, senderNumber) => {
+        try {
+            // Lock the group
+            await sock.groupSettingUpdate(sender, 'announcement');
+            
+            // Enable all security features
+            updateGroupData(sender, { 
+                locked: true,
+                raidmode: true,
+                antilink: true,
+                antispam: true,
+                antibot: true,
+                panicmode: true
+            });
+            
+            addLog('paniclock', { groupId: sender, by: senderNumber });
+            
+            reply(`🚨 *PANIC LOCK ACTIVATED!*\n\n🔒 Group: LOCKED\n🛡️ Raid Mode: ON\n⚔️ All Security: ENABLED\n\n⚠️ Only admins can send messages!\n\nUse .unlock to disable panic mode.`);
+        } catch (error) {
+            reply('❌ Failed to activate panic lock! Make sure I have admin privileges.');
+        }
     }
 };
 
@@ -160,4 +202,4 @@ function parseDuration(time) {
     };
     
     return multipliers[unit] ? value * multipliers[unit] : null;
-                                                                    }
+}
