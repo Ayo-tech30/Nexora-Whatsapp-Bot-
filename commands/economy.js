@@ -194,5 +194,89 @@ module.exports = {
             : 'Empty';
         
         reply(`🎒 *Inventory*\n\n${items}`);
+    },
+
+    monthly: async (sock, m, args, reply, senderNumber) => {
+        const eco = getEconomyData(senderNumber);
+        const now = Date.now();
+        const monthMs = 2592000000; // 30 days
+        
+        if (eco.lastMonthly && now - eco.lastMonthly < monthMs) {
+            const timeLeft = monthMs - (now - eco.lastMonthly);
+            const days = Math.floor(timeLeft / 86400000);
+            return reply(`⏰ Monthly reward already claimed!\n\nCome back in ${days} days.`);
+        }
+        
+        const reward = 15000;
+        updateEconomyData(senderNumber, { 
+            balance: eco.balance + reward,
+            lastMonthly: now
+        });
+        
+        reply(`🎁 *Monthly Reward!*\n\n💵 +$${reward.toLocaleString()}\n💰 New balance: $${(eco.balance + reward).toLocaleString()}`);
+    },
+
+    rob: async (sock, m, args, reply, senderNumber) => {
+        const mentioned = m.message.extendedTextMessage?.contextInfo?.mentionedJid?.[0];
+        
+        if (!mentioned) {
+            return reply('❌ Usage: .rob @user\n\nTry to rob someone!');
+        }
+        
+        const success = Math.random() > 0.7; // 30% success rate
+        const senderEco = getEconomyData(senderNumber);
+        const targetEco = getEconomyData(mentioned);
+        
+        if (success && targetEco.balance > 0) {
+            const stolen = Math.floor(Math.random() * Math.min(targetEco.balance, 1000)) + 100;
+            updateEconomyData(senderNumber, { balance: senderEco.balance + stolen });
+            updateEconomyData(mentioned, { balance: targetEco.balance - stolen });
+            reply(`🦹 *Robbery Successful!*\n\n💰 Robbed: $${stolen.toLocaleString()} from @${mentioned.split('@')[0]}\n💵 Your balance: $${(senderEco.balance + stolen).toLocaleString()}`);
+        } else {
+            const fine = Math.floor(Math.random() * 500) + 200;
+            const newBalance = Math.max(0, senderEco.balance - fine);
+            updateEconomyData(senderNumber, { balance: newBalance });
+            reply(`🚔 *Caught Robbing!*\n\n💸 Fine: $${fine.toLocaleString()}\n💰 Balance: $${newBalance.toLocaleString()}`);
+        }
+    },
+
+    use: async (sock, m, args, reply, senderNumber) => {
+        const item = args.join(' ');
+        if (!item) return reply('❌ Usage: .use <item>\n\nExample: .use XP Boost');
+        
+        const eco = getEconomyData(senderNumber);
+        if (!eco.inventory || !eco.inventory.includes(item)) {
+            return reply(`❌ You don't have "${item}" in your inventory!\n\nUse .inventory to check your items`);
+        }
+        
+        reply(`✅ Used item: ${item}\n\n⚠️ Item effects system under development`);
+    },
+
+    profile: async (sock, m, args, reply, senderNumber) => {
+        const { getUserData } = require('../utils/database');
+        const userData = getUserData(senderNumber);
+        const eco = getEconomyData(senderNumber);
+        
+        const profile = `👤 *User Profile*\n\n@${senderNumber.split('@')[0]}\n\n💰 Balance: $${eco.balance.toLocaleString()}\n🏦 Bank: $${eco.bank.toLocaleString()}\n🎯 Level: ${userData.level || 1}\n⭐ XP: ${userData.xp || 0}\n⚠️ Warnings: ${userData.warnings || 0}/3\n🎒 Items: ${eco.inventory?.length || 0}`;
+        
+        reply(profile);
+    },
+
+    reseteco: async (sock, m, args, reply, senderNumber) => {
+        if (!args[0] || args[0] !== 'confirm') {
+            return reply('⚠️ *WARNING: This will reset YOUR economy data!*\n\nType: .reseteco confirm');
+        }
+        
+        updateEconomyData(senderNumber, {
+            balance: 500,
+            bank: 0,
+            lastDaily: 0,
+            lastWeekly: 0,
+            lastMonthly: 0,
+            lastWork: 0,
+            inventory: []
+        });
+        
+        reply('✅ Your economy data has been reset!\n\n💰 Balance: $500\n🏦 Bank: $0');
     }
 };
