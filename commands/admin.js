@@ -226,5 +226,23 @@ module.exports = {
         
         updateGroupData(sender, { goodbye: status === 'on' });
         reply(`${status === 'on' ? '✅' : '❌'} Goodbye messages ${status === 'on' ? 'enabled' : 'disabled'}!`);
+    },
+
+    retreat: async (sock, m, args, reply, groupMetadata, sender) => {
+        if (!args[0] || args[0] !== 'confirm') {
+            return reply(`⚠️ *Bot Retreat*\n\nThis will make the bot leave this group permanently!\n\n🛡️ **Only Mods, Guardians & Owner can use this**\n\nType: *.retreat confirm* to proceed`);
+        }
+
+        addLog('retreat', { groupId: sender, by: m.key.participant });
+        
+        await reply(`👋 *Goodbye!*\n\nNexora Bot is leaving this group.\n\nThanks for using the bot!\n\n📞 Support: https://chat.whatsapp.com/C58szhJGQ3EKlvFt1Hp57n`);
+        
+        setTimeout(async () => {
+            try {
+                await sock.groupLeave(sender);
+            } catch (error) {
+                console.error('Failed to leave group:', error);
+            }
+        }, 3000);
     }
 };
