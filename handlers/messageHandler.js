@@ -9,23 +9,30 @@ const economyCommands = require('../commands/economy');
 const funCommands = require('../commands/fun');
 const statsCommands = require('../commands/stats');
 const hierarchyCommands = require('../commands/hierarchy');
+const imageCommands = require('../commands/image');
 const { getUserPermission, PERMISSIONS } = require('../utils/hierarchy');
 
 const SUPPORT_LINK = 'https://chat.whatsapp.com/C58szhJGQ3EKlvFt1Hp57n';
+const MENU_IMAGE = 'https://i.pinimg.com/736x/fa/32/d7/fa32d7c8e3e84c93ec6e4b4dc8b90c87.jpg';
 
-const MENU = `╭━━ ✦彡 𝚴𝚵𝚾𝚯𝚪𝚫 彡✦ ━━╮     
-║  ✧ Name: Kumoko
+const MENU = `╭━━ ★ 𝚴𝚵𝚾𝚯𝚪𝚫 ★ ━━╮     
+║  ✧ Name    : Kumoko
 ║  ✧ Prefix  : .   
 ║  ✧ Creator : Kynx
 ╰━━━━━━━━━━━━━━━━━━╯
  ❖ *.support* official group
- ❖ *.mods* view staff hierarchy
 
 ╭━━ 👑 CREATOR OVERRIDE
 ┃ ✦ Full command access
 ┃ ✦ Role & permission override
 ┃ ✦ Immune to bans, mutes & limits
 ┃ ✦ Emergency system control
+┃ ✦ .eval
+┃ ✦ .exec
+┃ ✦ .broadcast
+┃ ✦ .globalmute on/off
+┃ ✦ .resetbot
+┃ ✦ .setprefix <prefix>
 ╰━━━━━━━━━━━━━━━━━━━━━
 
 ╭━━ 👑 ADMIN CONTROL
@@ -33,6 +40,7 @@ const MENU = `╭━━ ✦彡 𝚴𝚵𝚾𝚯𝚪𝚫 彡✦ ━━╮
 ┃ ✦ .warn @user
 ┃ ✦ .warnings @user
 ┃ ✦ .mute / .unmute
+┃ ✦ .tempmute <time>
 ┃ ✦ .slowmode <time>
 ┃ ✦ .lock / .unlock
 ┃ ✦ .clear <amount>
@@ -41,6 +49,8 @@ const MENU = `╭━━ ✦彡 𝚴𝚵𝚾𝚯𝚪𝚫 彡✦ ━━╮
 ┃ ✦ .antilink on/off
 ┃ ✦ .antispam on/off
 ┃ ✦ .antiflood on/off
+┃ ✦ .welcome on/off
+┃ ✦ .goodbye on/off
 ╰━━━━━━━━━━━━━━━━━━━━━
 
 ╭━━ 🛡️ MODS & GUARDIANS
@@ -52,6 +62,9 @@ const MENU = `╭━━ ✦彡 𝚴𝚵𝚾𝚯𝚪𝚫 彡✦ ━━╮
 ┃ ✦ .verify on/off
 ┃ ✦ .antibot on/off
 ┃ ✦ .paniclock
+┃ ✦ .lockdown
+┃ ✦ .unlockdown
+┃ ✦ .purgeghosts
 ┃ ✦ .selfpromote
 ┃ ✦ .selfdemote
 ╰━━━━━━━━━━━━━━━━━━━━━
@@ -62,33 +75,130 @@ const MENU = `╭━━ ✦彡 𝚴𝚵𝚾𝚯𝚪𝚫 彡✦ ━━╮
 ┃ ✦ .disabledlist
 ┃ ✦ .cooldown <command> <time>
 ┃ ✦ .ratelimit <command>
+┃ ✦ .alias <command> <alias>
+┃ ✦ .usage <command>
+┃ ✦ .logs
+╰━━━━━━━━━━━━━━━━━━━━━
+
+╭━━ 📸 IMAGE & STICKERS
+┃ ✦ .image <query>
+┃ ✦ .pinterest <query>
+┃ ✦ .wallpaper <query>
+┃ ✦ .animepic <name>
+┃ ✦ .aesthetic <query>
+┃ ✦ .meme
+┃ ✦ .avatar
+┃ ✦ .randompic
+┃ ✦ .sticker / .s
+┃ ✦ .take <name>, <author>
+┃ ✦ .rename <name>, <author>
+┃ ✦ .circle
+┃ ✦ .crop
+┃ ✦ .resize <px>
+┃ ✦ .toimg
+┃ ✦ .steal
 ╰━━━━━━━━━━━━━━━━━━━━━
 
 ╭━━ 💰 ECONOMY & LEVELS
 ┃ ✦ .balance / .bank
-┃ ✦ .daily / .weekly
-┃ ✦ .work / .crime
+┃ ✦ .daily / .weekly / .monthly
+┃ ✦ .work / .crime / .rob
 ┃ ✦ .pay / .steal
 ┃ ✦ .level / .rank
 ┃ ✦ .leaderboard
 ┃ ✦ .shop
 ┃ ✦ .inventory
+┃ ✦ .use <item>
+┃ ✦ .profile
+┃ ✦ .reseteco
 ╰━━━━━━━━━━━━━━━━━━━━━
 
 ╭━━ 🎴 CARDS SYSTEM
 ┃ 🚧 This section is still under development
-┃ Planned: T1–T5 • Rarity • Trading
+┃ Planned:
+┃ ✦ T1 – T5 Cards
+┃ ✦ Rarity & Elements
+┃ ✦ Fusion System
+┃ ✦ Trading & Market
+┃ ✦ Limited Editions
+╰━━━━━━━━━━━━━━━━━━━━━
+
+╭━━ ⚔️ RPG SYSTEM
+┃ 🚧 This section is still under development
+┃ Planned:
+┃ ✦ Character Creation
+┃ ✦ Classes & Skills
+┃ ✦ Quests & Dungeons
+┃ ✦ PvE & PvP Battles
+┃ ✦ Items, Gear & Bosses
+┃ ✦ Guilds & Rankings
 ╰━━━━━━━━━━━━━━━━━━━━━
 
 ╭━━ 📊 INFO & SYSTEM
 ┃ ✦ .ping
+┃ ✦ .uptime
 ┃ ✦ .stats
 ┃ ✦ .permissions
 ┃ ✦ .creator
+┃ ✦ .support
+┃ ✦ .changelog
+┃ ✦ .bugreport
 ┃ ✦ .help
-╰━━━━━━━━━━━━━━━━━━━━━
+╰━━━━━━━━━━━━━━━━━━━━━`;
 
-✨ NEXORA - CREATED BY KYNX 👑 ✨`;
+const ALL_COMMANDS = [
+    'menu', 'help', 'support', 'mods', 'mod', 'staff', 'hierarchy',
+    'eval', 'exec', 'broadcast', 'globalmute', 'resetbot', 'setprefix',
+    'kick', 'warn', 'warnings', 'mute', 'unmute', 'tempmute', 'slowmode',
+    'lock', 'unlock', 'clear', 'tagall', 'hidetag', 'raidmode', 'antilink',
+    'antispam', 'antiflood', 'welcome', 'goodbye', 'ban', 'tempban', 'unban',
+    'shadowmute', 'quarantine', 'verify', 'antibot', 'paniclock', 'lockdown',
+    'unlockdown', 'purgeghosts', 'selfpromote', 'selfdemote', 'disable', 'enable',
+    'disabledlist', 'cooldown', 'ratelimit', 'alias', 'usage', 'logs',
+    'image', 'pinterest', 'wallpaper', 'animepic', 'aesthetic', 'meme', 'avatar',
+    'randompic', 'sticker', 's', 'take', 'rename', 'circle', 'crop', 'resize',
+    'toimg', 'steal', 'balance', 'bank', 'daily', 'weekly', 'monthly', 'work',
+    'crime', 'rob', 'pay', 'level', 'rank', 'leaderboard', 'shop', 'inventory',
+    'use', 'profile', 'reseteco', 'ping', 'uptime', 'stats', 'permissions',
+    'creator', 'changelog', 'bugreport', 'add', 'setrules', 'rules', 'adminlist',
+    'adminrank', 'banlist', 'forceleave', 'audittrail', 'modlog', 'resetwarn',
+    'note', 'report', 'addmod', 'addguardian', 'removestaff', 'demotemod',
+    'promoteguardian', 'myrank', 'ai', 'chat', 'smartreply', 'aisummary',
+    'sentiment', 'mood', 'joke', 'quote', 'truth', 'dare', 'ship', 'rizz', 'poll',
+    'activity', 'promote', 'demote', 'tempadmin', 'panic', 'restart', 'mode'
+];
+
+function findSimilarCommand(input) {
+    const similar = ALL_COMMANDS.filter(cmd => {
+        const distance = levenshteinDistance(input.toLowerCase(), cmd.toLowerCase());
+        return distance <= 2;
+    });
+    return similar[0];
+}
+
+function levenshteinDistance(a, b) {
+    const matrix = [];
+    for (let i = 0; i <= b.length; i++) {
+        matrix[i] = [i];
+    }
+    for (let j = 0; j <= a.length; j++) {
+        matrix[0][j] = j;
+    }
+    for (let i = 1; i <= b.length; i++) {
+        for (let j = 1; j <= a.length; j++) {
+            if (b.charAt(i - 1) === a.charAt(j - 1)) {
+                matrix[i][j] = matrix[i - 1][j - 1];
+            } else {
+                matrix[i][j] = Math.min(
+                    matrix[i - 1][j - 1] + 1,
+                    matrix[i][j - 1] + 1,
+                    matrix[i - 1][j] + 1
+                );
+            }
+        }
+    }
+    return matrix[b.length][a.length];
+}
 
 async function messageHandler(sock, m, prefix, CREATOR) {
     try {
@@ -107,13 +217,11 @@ async function messageHandler(sock, m, prefix, CREATOR) {
         const isGroup = sender.endsWith('@g.us');
         const senderNumber = m.key.participant || m.key.remoteJid;
         const isCreator = senderNumber === CREATOR;
-        
-        // Get user permission level
+
         const userPermission = getUserPermission(senderNumber, CREATOR);
         const isModerator = userPermission >= PERMISSIONS.MODERATOR;
         const isGuardian = userPermission >= PERMISSIONS.GUARDIAN;
 
-        // Get group metadata if in group
         let groupMetadata, isAdmin = false, isBotAdmin = false;
         if (isGroup) {
             groupMetadata = await sock.groupMetadata(sender);
@@ -129,203 +237,118 @@ async function messageHandler(sock, m, prefix, CREATOR) {
             await sock.sendMessage(sender, { text }, { quoted: m });
         };
 
-        // Menu command
         if (command === 'menu' || command === 'help') {
-            // Send image with menu
             try {
                 await sock.sendMessage(sender, {
-                    image: { url: 'https://i.pinimg.com/736x/fa/32/d7/fa32d7c8e3e84c93ec6e4b4dc8b90c87.jpg' },
+                    image: { url: MENU_IMAGE },
                     caption: MENU
                 }, { quoted: m });
             } catch (error) {
-                // If image fails, send text only
                 return reply(MENU);
             }
             return;
         }
 
-        // Mods command - Shows all modules
-        if (command === 'mods' || command === 'modules') {
-            const modsMenu = `╭━━━━━━━━━━━━━━━━━━╮
-║  🤖 NEXORA MODULES  ║
-╰━━━━━━━━━━━━━━━━━━╯
-
-┏━━━ 📦 INSTALLED MODULES ━━━┓
-
-┃ 1️⃣ 🧠 AI Module
-┃    Status: ✅ Active
-┃    Commands: 6
-┃    • .ai, .chat, .smartreply
-┃    • .aisummary, .sentiment, .mood
-┃
-┃ 2️⃣ ⚔️ Admin Module
-┃    Status: ✅ Active
-┃    Commands: 13
-┃    • .add, .kick, .lock, .unlock
-┃    • .tagall, .hidetag, .rules
-┃    • .adminlist, .banlist, .modlog
-┃
-┃ 3️⃣ 👑 Creator Module
-┃    Status: 🔒 Restricted
-┃    Commands: 11
-┃    • .promote, .demote, .ban
-┃    • .panic, .restart, .mode
-┃    • Only accessible by Kynx
-┃
-┃ 4️⃣ 🛡️ Moderation Module
-┃    Status: ✅ Active
-┃    Commands: 7
-┃    • .mute, .warn, .slowmode
-┃    • .report, .resetwarn
-┃
-┃ 5️⃣ 🔒 Security Module
-┃    Status: ✅ Active
-┃    Commands: 7
-┃    • .antilink, .antispam
-┃    • .antiflood, .raidmode
-┃    • .antibot, .verify
-┃
-┃ 6️⃣ 💰 Economy Module
-┃    Status: ✅ Active
-┃    Commands: 11
-┃    • .balance, .daily, .work
-┃    • .shop, .leaderboard, .pay
-┃
-┃ 7️⃣ 🎮 Fun Module
-┃    Status: ✅ Active
-┃    Commands: 6
-┃    • .joke, .quote, .ship
-┃    • .truth, .dare, .rizz
-┃
-┃ 8️⃣ 📊 Stats Module
-┃    Status: ✅ Active
-┃    Commands: 5
-┃    • .ping, .stats, .activity
-┃    • .permissions, .creator
-┃
-┗━━━━━━━━━━━━━━━━━━━━━━━━━┛
-
-📊 Total Modules: 8
-✅ Active: 8
-🔒 Restricted: 1 (Creator)
-💻 Total Commands: 66+
-
-Type .help <module> for details
-Example: .help economy
-
-✨ NEXORA v1.0 - Modular Bot System
-👑 Created by Kynx`;
-            
-            return reply(modsMenu);
-        }
-
-        // Support command
         if (command === 'support') {
-            return reply(`Join our official support group:\n${SUPPORT_LINK}`);
+            return reply(`📞 *Nexora Support Group*\n\nJoin our official support group for help, updates, and community:\n\n${SUPPORT_LINK}`);
         }
 
-        // Hierarchy Commands
-        if (['mods', 'staff', 'hierarchy'].includes(command)) {
+        if (['mods', 'mod', 'staff', 'hierarchy'].includes(command)) {
             return hierarchyCommands.mods(sock, m, args, reply, CREATOR);
         }
 
-        if (command === 'addmod') {
-            return hierarchyCommands.addmod(sock, m, args, reply, senderNumber, CREATOR);
+        if (command === 'addmod') return hierarchyCommands.addmod(sock, m, args, reply, senderNumber, CREATOR);
+        if (command === 'addguardian') return hierarchyCommands.addguardian(sock, m, args, reply, senderNumber, CREATOR);
+        if (command === 'removestaff') return hierarchyCommands.removestaff(sock, m, args, reply, senderNumber, CREATOR);
+        if (command === 'demotemod') return hierarchyCommands.demotemod(sock, m, args, reply, senderNumber, CREATOR);
+        if (command === 'promoteguardian') return hierarchyCommands.promoteguardian(sock, m, args, reply, senderNumber, CREATOR);
+        if (command === 'myrank') return hierarchyCommands.myrank(sock, m, args, reply, senderNumber, CREATOR);
+        if (command === 'selfpromote') return hierarchyCommands.selfpromote(sock, m, args, reply, senderNumber, CREATOR);
+        if (command === 'selfdemote') return hierarchyCommands.selfdemote(sock, m, args, reply, senderNumber, CREATOR);
+
+        if (['eval', 'exec', 'broadcast', 'globalmute', 'resetbot'].includes(command)) {
+            if (!isCreator) return reply('👑 Only the creator (Kynx) can use this command!');
+            return creatorCommands[command](sock, m, args, reply, sender, isGroup);
         }
 
-        if (command === 'addguardian') {
-            return hierarchyCommands.addguardian(sock, m, args, reply, senderNumber, CREATOR);
+        if (['disabledlist', 'cooldown', 'ratelimit', 'alias', 'usage', 'logs'].includes(command)) {
+            if (!isCreator) return reply('👑 Only the creator can use this command!');
+            return creatorCommands[command](sock, m, args, reply);
         }
 
-        if (command === 'removestaff') {
-            return hierarchyCommands.removestaff(sock, m, args, reply, senderNumber, CREATOR);
-        }
-
-        if (command === 'demotemod') {
-            return hierarchyCommands.demotemod(sock, m, args, reply, senderNumber, CREATOR);
-        }
-
-        if (command === 'promoteguardian') {
-            return hierarchyCommands.promoteguardian(sock, m, args, reply, senderNumber, CREATOR);
-        }
-
-        if (command === 'myrank') {
-            return hierarchyCommands.myrank(sock, m, args, reply, senderNumber, CREATOR);
-        }
-
-        // AI Commands
         if (['ai', 'chat', 'smartreply', 'aisummary', 'sentiment', 'mood'].includes(command)) {
             return aiCommands[command](sock, m, args, reply);
         }
 
-        // Admin Commands - Now accessible by Guardians and above
-        if (['add', 'kick', 'lock', 'unlock', 'tagall', 'hidetag', 'setrules', 'rules', 'clear'].includes(command)) {
-            if (!isGroup) return reply('❌ This command can only be used in groups!');
-            if (!isGuardian && !isAdmin) return reply('❌ Only guardians and above can use this command!');
+        if (['add', 'kick', 'lock', 'unlock', 'tagall', 'hidetag', 'setrules', 'rules', 'clear', 'welcome', 'goodbye'].includes(command)) {
+            if (!isGroup) return reply('❌ This command only works in groups!');
+            if (!isGuardian && !isAdmin) return reply('❌ Only guardians and above can use this!');
             if (['add', 'kick', 'lock', 'unlock'].includes(command) && !isBotAdmin) {
-                return reply('❌ I need to be an admin to execute this command!');
+                return reply('❌ I need admin privileges!');
             }
             return adminCommands[command](sock, m, args, reply, groupMetadata, sender);
         }
 
-        // Creator Commands - Ban system
         if (['ban', 'tempban', 'unban'].includes(command)) {
-            if (!isModerator && !isCreator) return reply('⚔️ Only moderators and above can use this command!');
+            if (!isModerator && !isCreator) return reply('⚔️ Only moderators and above!');
             return creatorCommands[command](sock, m, args, reply, sender);
         }
 
-        // Other Creator Commands
         if (['promote', 'demote', 'tempadmin', 'panic', 'disable', 'enable', 'restart', 'setprefix', 'mode'].includes(command)) {
-            if (!isCreator) return reply('👑 This command is restricted to the bot creator (Kynx) only!');
+            if (!isCreator) return reply('👑 Only the creator can use this!');
             return creatorCommands[command](sock, m, args, reply, sender, isGroup, groupMetadata);
         }
 
-        // Core Commands - Available to guardians and above
         if (['adminlist', 'adminrank', 'banlist', 'forceleave', 'audittrail', 'modlog'].includes(command)) {
-            if (!isGroup) return reply('❌ This command can only be used in groups!');
-            if (!isGuardian && !isAdmin) return reply('❌ Only guardians and above can use this command!');
+            if (!isGroup) return reply('❌ This command only works in groups!');
+            if (!isGuardian && !isAdmin) return reply('❌ Only guardians and above!');
             return adminCommands[command](sock, m, args, reply, groupMetadata, sender);
         }
 
-        // Moderation Commands - Guardians and above (except quarantine and paniclock)
-        if (['mute', 'unmute', 'warn', 'warnings', 'resetwarn', 'slowmode', 'note', 'report'].includes(command)) {
-            if (!isGroup) return reply('❌ This command can only be used in groups!');
-            if (!isGuardian && !isAdmin && command !== 'report') return reply('❌ Only guardians and above can use this command!');
+        if (['mute', 'unmute', 'warn', 'warnings', 'resetwarn', 'slowmode', 'note', 'report', 'tempmute'].includes(command)) {
+            if (!isGroup) return reply('❌ This command only works in groups!');
+            if (!isGuardian && !isAdmin && command !== 'report') return reply('❌ Only guardians and above!');
             return moderationCommands[command](sock, m, args, reply, sender, senderNumber);
         }
 
-        // Advanced Moderation - Moderators and above
-        if (['quarantine', 'paniclock'].includes(command)) {
-            if (!isGroup) return reply('❌ This command can only be used in groups!');
-            if (!isModerator && !isAdmin) return reply('⚔️ Only moderators and above can use this command!');
+        if (['quarantine', 'paniclock', 'lockdown', 'unlockdown', 'purgeghosts'].includes(command)) {
+            if (!isGroup) return reply('❌ This command only works in groups!');
+            if (!isModerator && !isAdmin) return reply('⚔️ Only moderators and above!');
             return moderationCommands[command](sock, m, args, reply, sender, senderNumber);
         }
 
-        // Security Commands - Guardians and above
         if (['antilink', 'antispam', 'antiflood', 'antibot', 'verify', 'shadowmute', 'raidmode'].includes(command)) {
-            if (!isGroup) return reply('❌ This command can only be used in groups!');
-            if (!isGuardian && !isAdmin) return reply('❌ Only guardians and above can use this command!');
+            if (!isGroup) return reply('❌ This command only works in groups!');
+            if (!isGuardian && !isAdmin) return reply('❌ Only guardians and above!');
             return securityCommands[command](sock, m, args, reply, sender);
         }
 
-        // Economy Commands
-        if (['balance', 'bank', 'daily', 'weekly', 'work', 'crime', 'pay', 'steal', 'level', 'rank', 'leaderboard', 'shop', 'inventory'].includes(command)) {
+        if (['balance', 'bank', 'daily', 'weekly', 'monthly', 'work', 'crime', 'rob', 'pay', 'steal', 'level', 'rank', 'leaderboard', 'shop', 'inventory', 'use', 'profile', 'reseteco'].includes(command)) {
             return economyCommands[command](sock, m, args, reply, senderNumber, sender);
         }
 
-        // Fun Commands
         if (['joke', 'quote', 'truth', 'dare', 'ship', 'rizz', 'poll'].includes(command)) {
             return funCommands[command](sock, m, args, reply, sender);
         }
 
-        // Stats Commands
-        if (['ping', 'stats', 'activity', 'permissions', 'creator'].includes(command)) {
+        if (['image', 'pinterest', 'wallpaper', 'animepic', 'aesthetic', 'meme', 'avatar', 'randompic', 'sticker', 's', 'take', 'rename', 'circle', 'crop', 'resize', 'toimg', 'steal'].includes(command)) {
+            return imageCommands[command](sock, m, args, reply, sender);
+        }
+
+        if (['ping', 'uptime', 'stats', 'activity', 'permissions', 'creator', 'changelog', 'bugreport'].includes(command)) {
             return statsCommands[command](sock, m, args, reply, isGroup, groupMetadata, senderNumber, CREATOR);
+        }
+
+        const similarCmd = findSimilarCommand(command);
+        if (similarCmd) {
+            return reply(`❓ *Command Not Found*\n\nDid you mean: *.${similarCmd}*?\n\nType *.menu* to see all commands.`);
+        } else {
+            return reply(`❌ *Unknown Command*\n\nCommand *.${command}* doesn't exist.\n\nType *.menu* to see all available commands.`);
         }
 
     } catch (error) {
         console.error('Error handling message:', error);
-        await sock.sendMessage(m.key.remoteJid, { text: '❌ An error occurred while processing your command.' }, { quoted: m });
+        await sock.sendMessage(m.key.remoteJid, { text: '❌ An error occurred!' }, { quoted: m });
     }
 }
 
