@@ -132,7 +132,7 @@ module.exports = {
         
         settings.disabled.push(command);
         saveData('settings', settings);
-        reply(`✅ Command "${command}" has been disabled!`);
+        reply(`✅ Command "${command}" has been disabled globally!`);
     },
 
     enable: async (sock, m, args, reply) => {
@@ -147,6 +147,52 @@ module.exports = {
         settings.disabled = settings.disabled.filter(c => c !== command);
         saveData('settings', settings);
         reply(`✅ Command "${command}" has been enabled!`);
+    },
+
+    disabledlist: async (sock, m, args, reply) => {
+        const settings = loadData('settings');
+        const disabled = settings.disabled || [];
+        
+        if (disabled.length === 0) {
+            return reply('✅ No commands are currently disabled!');
+        }
+        
+        const list = disabled.map((cmd, i) => `${i + 1}. ${cmd}`).join('\n');
+        reply(`🚫 *Disabled Commands*\n\n${list}\n\nTotal: ${disabled.length}`);
+    },
+
+    cooldown: async (sock, m, args, reply) => {
+        const command = args[0];
+        const time = parseInt(args[1]);
+        
+        if (!command || !time) {
+            return reply('❌ Usage: .cooldown <command> <seconds>\n\nExample: .cooldown work 3600');
+        }
+        
+        const settings = loadData('settings');
+        if (!settings.cooldowns) settings.cooldowns = {};
+        
+        settings.cooldowns[command] = time * 1000;
+        saveData('settings', settings);
+        
+        reply(`✅ Cooldown set for "${command}": ${time} seconds`);
+    },
+
+    ratelimit: async (sock, m, args, reply) => {
+        const command = args[0];
+        const limit = parseInt(args[1]);
+        
+        if (!command || !limit) {
+            return reply('❌ Usage: .ratelimit <command> <uses per minute>\n\nExample: .ratelimit joke 5');
+        }
+        
+        const settings = loadData('settings');
+        if (!settings.ratelimits) settings.ratelimits = {};
+        
+        settings.ratelimits[command] = limit;
+        saveData('settings', settings);
+        
+        reply(`✅ Rate limit set for "${command}": ${limit} uses per minute`);
     },
 
     restart: async (sock, m, args, reply) => {
@@ -181,6 +227,133 @@ module.exports = {
         saveData('settings', settings);
         
         reply(`✅ Bot mode set to: ${mode.toUpperCase()}\n\n${mode === 'private' ? '🔒 Only creator can use the bot' : '🌐 Everyone can use the bot'}`);
+    },
+
+    eval: async (sock, m, args, reply, sender, isGroup) => {
+        const code = args.join(' ');
+        if (!code) return reply('❌ Usage: .eval <code>\n\nExample: .eval 1 + 1');
+        
+        try {
+            let result = eval(code);
+            if (typeof result === 'object') result = JSON.stringify(result, null, 2);
+            reply(`✅ *Eval Result:*\n\n\`\`\`${result}\`\`\``);
+        } catch (error) {
+            reply(`❌ *Eval Error:*\n\n\`\`\`${error.message}\`\`\``);
+        }
+    },
+
+    exec: async (sock, m, args, reply) => {
+        const command = args.join(' ');
+        if (!command) return reply('❌ Usage: .exec <command>\n\nExample: .exec ls -la');
+        
+        const { exec } = require('child_process');
+        exec(command, (error, stdout, stderr) => {
+            if (error) {
+                return reply(`❌ *Exec Error:*\n\n\`\`\`${error.message}\`\`\``);
+            }
+            if (stderr) {
+                return reply(`⚠️ *Stderr:*\n\n\`\`\`${stderr}\`\`\``);
+            }
+            reply(`✅ *Exec Output:*\n\n\`\`\`${stdout || 'No output'}\`\`\``);
+        });
+    },
+
+    broadcast: async (sock, m, args, reply) => {
+        const message = args.join(' ');
+        if (!message) return reply('❌ Usage: .broadcast <message>\n\nBroadcasts to all groups');
+        
+        const groups = loadData('groups');
+        const groupIds = Object.keys(groups);
+        
+        let success = 0;
+        for (const groupId of groupIds) {
+            try {
+                await sock.sendMessage(groupId, { text: `📢 *Broadcast from Creator (Kynx)*\n\n${message}` });
+                success++;
+            } catch (error) {
+                console.error(`Failed to send to ${groupId}`);
+            }
+        }
+        
+        reply(`✅ Broadcast sent to ${success}/${groupIds.length} groups!`);
+    },
+
+    globalmute: async (sock, m, args, reply) => {
+        const status = args[0]?.toLowerCase();
+        if (!['on', 'off'].includes(status)) {
+            return reply('❌ Usage: .globalmute on/off\n\nMutes bot in ALL groups');
+        }
+        
+        const settings = loadData('settings');
+        settings.globalmute = status === 'on';
+        saveData('settings', settings);
+        
+        reply(`${status === 'on' ? '🔇' : '🔊'} Global mute ${status === 'on' ? 'enabled' : 'disabled'}!\n\nBot will ${status === 'on' ? 'not respond' : 'respond normally'} in all groups.`);
+    },
+
+    resetbot: async (sock, m, args, reply) => {
+        if (!args[0] || args[0] !== 'confirm') {
+            return reply('⚠️ *WARNING: This will reset ALL bot data!*\n\nType: .resetbot confirm');
+        }
+        
+        reply('🔄 Resetting bot data...');
+        
+        const settings = { hierarchy: { mods: [], guardians: [] } };
+        saveData('settings', settings);
+        saveData('users', {});
+        saveData('groups', {});
+        saveData('economy', {});
+        saveData('bans', {});
+        saveData('logs', {});
+        
+        reply('✅ Bot data has been reset!\n\nAll users, economy, and settings cleared.');
+    },
+
+    alias: async (sock, m, args, reply) => {
+        const [command, alias] = args;
+        if (!command || !alias) {
+            return reply('❌ Usage: .alias <command> <alias>\n\nExample: .alias balance bal');
+        }
+        
+        const settings = loadData('settings');
+        if (!settings.aliases) settings.aliases = {};
+        
+        settings.aliases[alias] = command;
+        saveData('settings', settings);
+        
+        reply(`✅ Alias created!\n\n.${alias} → .${command}`);
+    },
+
+    usage: async (sock, m, args, reply) => {
+        const command = args[0];
+        if (!command) return reply('❌ Usage: .usage <command>\n\nShows command statistics');
+        
+        const { loadData } = require('../utils/database');
+        const logs = loadData('logs');
+        
+        const uses = Object.values(logs).filter(log => log.command === command).length;
+        
+        reply(`📊 *Command Usage Stats*\n\nCommand: .${command}\nTotal Uses: ${uses}\n\nLast used: ${uses > 0 ? 'Recently' : 'Never'}`);
+    },
+
+    logs: async (sock, m, args, reply) => {
+        const { loadData } = require('../utils/database');
+        const logs = loadData('logs');
+        
+        const recent = Object.values(logs)
+            .sort((a, b) => b.timestamp - a.timestamp)
+            .slice(0, 20);
+        
+        if (recent.length === 0) {
+            return reply('📋 No logs found!');
+        }
+        
+        const logList = recent.map((log, i) => {
+            const date = new Date(log.timestamp).toLocaleString();
+            return `${i + 1}. [${log.type?.toUpperCase() || 'ACTION'}] ${date}`;
+        }).join('\n');
+        
+        reply(`📋 *Recent Logs (Last 20)*\n\n${logList}`);
     }
 };
 
@@ -196,4 +369,4 @@ function parseDuration(time) {
     };
     
     return multipliers[unit] ? value * multipliers[unit] : null;
-                                            }
+}
