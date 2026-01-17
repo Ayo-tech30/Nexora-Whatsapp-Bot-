@@ -204,5 +204,27 @@ module.exports = {
         }).join('\n');
         
         reply(`🛡️ *Moderation Logs (Last 15)*\n\n${logList}`);
+    },
+
+    welcome: async (sock, m, args, reply, groupMetadata, sender) => {
+        const status = args[0]?.toLowerCase();
+        if (!['on', 'off'].includes(status)) {
+            const current = getGroupData(sender).welcome;
+            return reply(`👋 Welcome messages: ${current ? '✅ ON' : '❌ OFF'}\n\nUsage: .welcome on/off`);
+        }
+        
+        updateGroupData(sender, { welcome: status === 'on' });
+        reply(`${status === 'on' ? '✅' : '❌'} Welcome messages ${status === 'on' ? 'enabled' : 'disabled'}!`);
+    },
+
+    goodbye: async (sock, m, args, reply, groupMetadata, sender) => {
+        const status = args[0]?.toLowerCase();
+        if (!['on', 'off'].includes(status)) {
+            const current = getGroupData(sender).goodbye;
+            return reply(`👋 Goodbye messages: ${current ? '✅ ON' : '❌ OFF'}\n\nUsage: .goodbye on/off`);
+        }
+        
+        updateGroupData(sender, { goodbye: status === 'on' });
+        reply(`${status === 'on' ? '✅' : '❌'} Goodbye messages ${status === 'on' ? 'enabled' : 'disabled'}!`);
     }
 };
