@@ -165,7 +165,7 @@ const ALL_COMMANDS = [
     'note', 'report', 'addmod', 'addguardian', 'removestaff', 'demotemod',
     'promoteguardian', 'myrank', 'ai', 'chat', 'smartreply', 'aisummary',
     'sentiment', 'mood', 'joke', 'quote', 'truth', 'dare', 'ship', 'rizz', 'poll',
-    'activity', 'promote', 'demote', 'tempadmin', 'panic', 'restart', 'mode'
+    'activity', 'promote', 'demote', 'tempadmin', 'panic', 'restart', 'mode', 'retreat'
 ];
 
 function findSimilarCommand(input) {
@@ -299,7 +299,7 @@ async function messageHandler(sock, m, prefix, CREATOR) {
             return creatorCommands[command](sock, m, args, reply, sender, isGroup, groupMetadata);
         }
 
-        if (['adminlist', 'adminrank', 'banlist', 'forceleave', 'audittrail', 'modlog'].includes(command)) {
+        if (['adminlist', 'adminrank', 'banlist', 'forceleave', 'audittrail', 'modlog', 'retreat'].includes(command)) {
             if (!isGroup) return reply('❌ This command only works in groups!');
             if (!isGuardian && !isAdmin) return reply('❌ Only guardians and above!');
             return adminCommands[command](sock, m, args, reply, groupMetadata, sender);
